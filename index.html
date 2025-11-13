@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Resume Analyzer 📄</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    /* Animated gradient mesh background */
+    .bg-shapes {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      background: linear-gradient(to bottom, #0f172a 0%, #1e293b 100%);
+    }
+    
+    .shape {
+      position: absolute;
+      filter: blur(80px);
+      opacity: 0.6;
+      animation: morphBlob 15s infinite ease-in-out alternate;
+    }
+    
+    .shape:nth-child(1) {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
+      top: -200px;
+      left: -100px;
+      animation-duration: 20s;
+      animation-delay: 0s;
+    }
+    
+    .shape:nth-child(2) {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+      bottom: -150px;
+      right: -100px;
+      animation-duration: 25s;
+      animation-delay: 5s;
+    }
+    
+    .shape:nth-child(3) {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-duration: 30s;
+      animation-delay: 10s;
+    }
+    
+    @keyframes morphBlob {
+      0%, 100% { 
+        transform: translate(0, 0) scale(1);
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      }
+      25% { 
+        transform: translate(50px, -50px) scale(1.1);
+        border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+      }
+      50% { 
+        transform: translate(-30px, 30px) scale(0.9);
+        border-radius: 40% 60% 50% 40% / 40% 50% 60% 50%;
+      }
+      75% { 
+        transform: translate(30px, 50px) scale(1.05);
+        border-radius: 70% 30% 40% 60% / 60% 40% 60% 30%;
+      }
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: slideDown 0.6s ease-out;
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    h1 {
+      font-size: 48px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .subtitle {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 400;
+    }
+    
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      animation: fadeIn 0.8s ease-out 0.2s both;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+    }
+    
+    .upload-section {
+      grid-column: 1 / -1;
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .card-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    
+    .upload-zone {
+      border: 3px dashed #d0d0d0;
+      border-radius: 16px;
+      padding: 60px 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .upload-zone:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+    
+    .upload-zone.dragover {
+      border-color: #667eea;
+      background: #f0f2ff;
+      transform: scale(1.02);
+    }
+    
+    .upload-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .upload-text {
+      font-size: 18px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    
+    .upload-subtext {
+      font-size: 14px;
+      color: #999;
+    }
+    
+    input[type="file"] {
+      display: none;
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      margin-top: 20px;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .loading.active {
+      display: block;
+    }
+    
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .results-section {
+      display: none;
+      grid-column: 1 / -1;
+      animation: slideUp 0.5s ease-out;
+    }
+    
+    .results-section.active {
+      display: block;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .score-display {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 30px;
+      color: white;
+    }
+    
+    .score-number {
+      font-size: 72px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    
+    .score-label {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+    
+    .section {
+      margin-bottom: 30px;
+    }
+    
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .badge.good {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .badge.warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .badge.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    .suggestion-item {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+    
+    .suggestion-item:hover {
+      background: #e9ecef;
+      transform: translateX(5px);
+    }
+    
+    .suggestion-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .suggestion-text {
+      color: #666;
+      line-height: 1.6;
+    }
+    
+    .skill-tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      margin: 5px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .keywords-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      
+      h1 {
+        font-size: 36px;
+      }
+      
+      .card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-shapes">
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+  </div>
+
+  <div class="container">
+    <header>
+      <h1>📄 AI Resume Analyzer</h1>
+      <p class="subtitle">Get instant AI-powered feedback to improve your resume</p>
+    </header>
+
+    <div class="main-content">
+      <div class="card upload-section">
+        <div class="card-header">
+          <div class="card-icon">📤</div>
+          <h2 class="card-title">Upload Your Resume</h2>
+        </div>
+        
+        <div class="upload-zone" id="uploadZone">
+          <div class="upload-icon">📄</div>
+          <div class="upload-text">Drop your resume here or click to browse</div>
+          <div class="upload-subtext">Supports PDF, DOC, DOCX, TXT (Max 5MB)</div>
+          <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt">
+        </div>
+        
+        <div id="fileName" style="margin-top: 15px; color: #667eea; font-weight: 500; text-align: center;"></div>
+        
+        <div style="text-align: center;">
+          <button class="btn" id="analyzeBtn" disabled>
+            🔍 Analyze Resume
+          </button>
+        </div>
+        
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <div style="color: #667eea; font-weight: 500;">Analyzing your resume with AI...</div>
+        </div>
+      </div>
+
+      <div class="card results-section" id="resultsSection">
+        <div class="score-display">
+          <div class="score-number" id="scoreNumber">85</div>
+          <div class="score-label">Resume Score</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            ✅ Strengths
+          </div>
+          <div id="strengthsList"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            💡 Improvement Suggestions
+          </div>
+          <div id="suggestionsList"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            🎯 Recommended Skills
+          </div>
+          <div class="keywords-grid" id="keywordsList"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">
+            📊 ATS Compatibility
+          </div>
+          <div id="atsAnalysis"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const loading = document.getElementById('loading');
+    const resultsSection = document.getElementById('resultsSection');
+    const fileName = document.getElementById('fileName');
+    
+    let selectedFile = null;
+
+    // Upload zone interactions
+    uploadZone.addEventListener('click', () => fileInput.click());
+    
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFileSelect(files[0]);
+      }
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+      }
+    });
+    
+    function handleFileSelect(file) {
+      const validTypes = ['application/pdf', 'application/msword', 
+                          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                          'text/plain'];
+      
+      if (!validTypes.includes(file.type)) {
+        alert('Please upload a valid file (PDF, DOC, DOCX, or TXT)');
+        return;
+      }
+      
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        return;
+      }
+      
+      selectedFile = file;
+      fileName.textContent = `📎 ${file.name}`;
+      analyzeBtn.disabled = false;
+    }
+    
+    analyzeBtn.addEventListener('click', analyzeResume);
+    
+    async function analyzeResume() {
+      if (!selectedFile) return;
+      
+      // Show loading
+      loading.classList.add('active');
+      analyzeBtn.disabled = true;
+      resultsSection.classList.remove('active');
+      
+      // Simulate AI analysis (in real app, this would call Claude API)
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      
+      // Generate mock analysis results
+      const analysis = generateMockAnalysis();
+      
+      // Display results
+      displayResults(analysis);
+      
+      // Hide loading and show results
+      loading.classList.remove('active');
+      resultsSection.classList.add('active');
+      analyzeBtn.disabled = false;
+      
+      // Scroll to results
+      setTimeout(() => {
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+    
+    function generateMockAnalysis() {
+      const scores = [72, 78, 85, 88, 92, 81, 87];
+      const score = scores[Math.floor(Math.random() * scores.length)];
+      
+      return {
+        score: score,
+        strengths: [
+          { title: 'Clear formatting', text: 'Your resume has a clean, professional layout that is easy to read.' },
+          { title: 'Quantified achievements', text: 'You effectively use numbers and metrics to demonstrate impact.' },
+          { title: 'Relevant experience', text: 'Your work history shows strong progression in your field.' }
+        ],
+        suggestions: [
+          { 
+            title: 'Add action verbs', 
+            text: 'Start bullet points with strong action verbs like "Led," "Developed," "Implemented" instead of "Responsible for."',
+            priority: 'high'
+          },
+          { 
+            title: 'Include keywords', 
+            text: 'Add industry-specific keywords to improve ATS compatibility and searchability.',
+            priority: 'high'
+          },
+          { 
+            title: 'Expand on achievements', 
+            text: 'Consider adding more specific examples of projects you led and their outcomes.',
+            priority: 'medium'
+          },
+          { 
+            title: 'Professional summary', 
+            text: 'Add a compelling 2-3 line summary at the top highlighting your unique value proposition.',
+            priority: 'medium'
+          }
+        ],
+        keywords: [
+          'Python', 'JavaScript', 'React', 'Node.js', 'AWS', 'Docker', 
+          'Kubernetes', 'Agile', 'CI/CD', 'Machine Learning', 'SQL', 'Git'
+        ],
+        ats: {
+          score: score > 80 ? 'good' : score > 70 ? 'warning' : 'error',
+          message: score > 80 
+            ? 'Your resume is well-optimized for ATS systems with good keyword usage and formatting.'
+            : score > 70
+            ? 'Your resume should pass most ATS systems, but could benefit from more relevant keywords.'
+            : 'Your resume may struggle with ATS systems. Consider simplifying formatting and adding keywords.'
+        }
+      };
+    }
+    
+    function displayResults(analysis) {
+      // Display score
+      document.getElementById('scoreNumber').textContent = analysis.score;
+      
+      // Display strengths
+      const strengthsList = document.getElementById('strengthsList');
+      strengthsList.innerHTML = analysis.strengths.map(strength => `
+        <div class="suggestion-item">
+          <div class="suggestion-title">
+            ✓ ${strength.title}
+          </div>
+          <div class="suggestion-text">${strength.text}</div>
+        </div>
+      `).join('');
+      
+      // Display suggestions
+      const suggestionsList = document.getElementById('suggestionsList');
+      suggestionsList.innerHTML = analysis.suggestions.map(suggestion => `
+        <div class="suggestion-item">
+          <div class="suggestion-title">
+            ${suggestion.priority === 'high' ? '🔴' : '🟡'} ${suggestion.title}
+            <span class="badge ${suggestion.priority === 'high' ? 'error' : 'warning'}">
+              ${suggestion.priority}
+            </span>
+          </div>
+          <div class="suggestion-text">${suggestion.text}</div>
+        </div>
+      `).join('');
+      
+      // Display keywords
+      const keywordsList = document.getElementById('keywordsList');
+      keywordsList.innerHTML = analysis.keywords.map(keyword => 
+        `<span class="skill-tag">${keyword}</span>`
+      ).join('');
+      
+      // Display ATS analysis
+      const atsAnalysis = document.getElementById('atsAnalysis');
+      atsAnalysis.innerHTML = `
+        <div class="suggestion-item">
+          <div class="suggestion-title">
+            ${analysis.ats.score === 'good' ? '✅' : analysis.ats.score === 'warning' ? '⚠️' : '❌'}
+            ATS Compatibility
+            <span class="badge ${analysis.ats.score}">${analysis.ats.score.toUpperCase()}</span>
+          </div>
+          <div class="suggestion-text">${analysis.ats.message}</div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
