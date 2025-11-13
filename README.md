@@ -19,7 +19,7 @@
 - **Frontend:** HTML, CSS, JavaScript  
 - **Design & Animations:** CSS keyframes, gradient backgrounds  
 - **AI Integration:** Placeholder logic for AI analysis (replaceable with real API calls)  
-- Fully client-side — no backend required for demo  
+- Fully client-side, no backend required for demo  
 
 ---
 
